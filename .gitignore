@@ -20,8 +20,8 @@ coverage.xml
 cover/
 
 ### Database files ###
-.sqlite3
-.sqlite
+*.sqlite3
+*.sqlite
 
 ### Flask files ###
 instance/
