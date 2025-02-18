@@ -9,8 +9,6 @@ from statuscodes import DATABASE_ERROR
 app = Flask(__name__)
 db = Database('data.sqlite')
 
-booking_columns = ["id", "date", "time", "duration"]
-
 
 @app.route('/')
 def home():
@@ -23,10 +21,11 @@ def get_bookings():
     """Return all booking time slots for the given date"""
     booking_date = request.form.get('date')
     ret, err, results = db.execute_query(
-        'SELECT date, time, duration FROM bookings WHERE date=?', (booking_date,))
+        'SELECT id, date, time, duration, available FROM bookings WHERE date=?', (booking_date,))
     if ret == DATABASE_ERROR:
         return jsonify({"error-msg": f"Error during database operation; error: {err}"}), 400
 
+    booking_columns = ["id", "date", "time", "duration", "available"]
     json_results = [dict(zip(booking_columns, result_row))
                     for result_row in results]
     return jsonify({"bookings": json_results}), 200
@@ -38,11 +37,12 @@ def create_booking():
     form_data = request.form
     date = form_data.get('date')
     time = form_data.get('time')
-    duration = float(form_data.get('duration'))
+    duration = form_data.get('duration')
+    available = form_data.get('available')
 
     datetime_str = f"{date} {time}"
     new_timeslot_start = datetime.strptime(datetime_str, "%Y-%m-%d %H:%M")
-    new_timeslot_end = new_timeslot_start + timedelta(minutes=duration)
+    new_timeslot_end = new_timeslot_start + timedelta(minutes=float(duration))
     print(f"start: {new_timeslot_start}, end: {new_timeslot_end}")
 
     ret, err, bookings_for_today = db.execute_query(
@@ -62,8 +62,9 @@ def create_booking():
         if not (new_timeslot_end <= existing_start_dt or new_timeslot_start >= existing_end_dt):
             return jsonify({"error-msg": "Overlapping booking found"}), 400
 
-    ret, err = db.execute_update(
-        "INSERT INTO bookings (date, time, duration) VALUES (?, ?, ?)", (date, time, duration))
+    query = "INSERT INTO bookings (date, time, duration" + (", available" if available is not None else "") + ") VALUES (?, ?, ?" + (", ?" if available is not None else "") + ")"
+    params = (date, time, duration) + ((available,) if available is not None else ())
+    ret, err = db.execute_update(query, params)
     if ret == DATABASE_ERROR:
         return jsonify({"error-msg": f"Error inserting data to the database; error: {err}"}), 400
 
