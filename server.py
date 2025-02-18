@@ -4,7 +4,8 @@ from datetime import datetime, timedelta
 
 from database import Database
 from flask import Flask, jsonify, request
-from statuscodes import DATABASE_ERROR
+from statuscodes import DATABASE_ERROR, VALIDATION_SUCCESS
+from utils import Validator
 
 app = Flask(__name__)
 db = Database('data.sqlite')
@@ -20,6 +21,9 @@ def home():
 def get_bookings():
     """Return all booking time slots for the given date"""
     booking_date = request.form.get('date')
+    if Validator.validate_date(booking_date) != VALIDATION_SUCCESS:
+        return jsonify({"error-msg": "Invalid input date to get bookings"}), 400
+
     ret, err, results = db.execute_query(
         'SELECT id, date, time, duration, available FROM bookings WHERE date=?', (booking_date,))
     if ret == DATABASE_ERROR:
@@ -34,16 +38,18 @@ def get_bookings():
 @app.route('/bookings', methods=['POST'])
 def create_booking():
     """Create a new booking time slot"""
-    form_data = request.form
-    date = form_data.get('date')
-    time = form_data.get('time')
-    duration = form_data.get('duration')
-    available = form_data.get('available')
+    date = request.form.get('date')
+    time = request.form.get('time')
+    duration = request.form.get('duration')
+
+    if Validator.validate_date(date) != VALIDATION_SUCCESS or \
+            Validator.validate_time(time) != VALIDATION_SUCCESS or \
+            Validator.validate_integer(duration) != VALIDATION_SUCCESS:
+        return jsonify({"error-msg": "Invalid input to create a new time slot"}), 400
 
     datetime_str = f"{date} {time}"
     new_timeslot_start = datetime.strptime(datetime_str, "%Y-%m-%d %H:%M")
     new_timeslot_end = new_timeslot_start + timedelta(minutes=float(duration))
-    print(f"start: {new_timeslot_start}, end: {new_timeslot_end}")
 
     ret, err, bookings_for_today = db.execute_query(
         "SELECT time, duration FROM bookings WHERE date = ?", (date,))
@@ -62,9 +68,8 @@ def create_booking():
         if not (new_timeslot_end <= existing_start_dt or new_timeslot_start >= existing_end_dt):
             return jsonify({"error-msg": "Overlapping booking found"}), 400
 
-    query = "INSERT INTO bookings (date, time, duration" + (", available" if available is not None else "") + ") VALUES (?, ?, ?" + (", ?" if available is not None else "") + ")"
-    params = (date, time, duration) + ((available,) if available is not None else ())
-    ret, err = db.execute_update(query, params)
+    ret, err = db.execute_update(
+        "INSERT INTO bookings (date, time, duration) VALUES (?, ?, ?)", (date, time, duration))
     if ret == DATABASE_ERROR:
         return jsonify({"error-msg": f"Error inserting data to the database; error: {err}"}), 400
 
