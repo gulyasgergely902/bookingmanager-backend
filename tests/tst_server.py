@@ -1,5 +1,5 @@
 import unittest
-from unittest.mock import MagicMock, patch
+from unittest.mock import patch
 
 from server import app
 from statuscodes import DATABASE_ERROR, SUCCESS

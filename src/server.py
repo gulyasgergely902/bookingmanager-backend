@@ -1,6 +1,6 @@
 """This module contains the Flask application that serves the booking API"""
 
-from datetime import datetime, timedelta
+from datetime import datetime
 
 from database import Database
 from flask import Flask, jsonify, request
