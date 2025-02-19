@@ -2,14 +2,18 @@
 
 EXPORT=0
 HTML=0
+UPLOAD=0
 
-while getopts "eh" opt; do
+while getopts "ehu" opt; do
     case "${opt}" in
         e)
             EXPORT=1
             ;;
         h)
             HTML=1
+            ;;
+        u)
+            UPLOAD=1
             ;;
         *)
             echo "Invalid option: -${OPTARG}" >&2
@@ -24,6 +28,9 @@ python3 -m coverage report -m
 if [ $EXPORT -eq 1 ]; then
     echo "Exporting coverage for codacy"
     python3 -m coverage xml -o cobertura.xml
+    if [ $UPLOAD -eq 1 ]; then
+        bash <(curl -Ls https://coverage.codacy.com/get.sh)
+    fi
 fi
 if [ $HTML -eq 1 ]; then
     echo "Exporting coverage for html"
