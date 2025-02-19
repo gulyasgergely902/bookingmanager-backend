@@ -61,9 +61,10 @@ class Database:
                     available INTEGER DEFAULT 1
                 )
             """)
-            return SUCCESS, ""
         except sqlite3.Error as e:
             return DATABASE_ERROR, f"Could not create database tables; {str(e)}"
+
+        return SUCCESS, ""
 
     def execute_query(self, query, params=None) -> tuple[int, str, list[Any]]:
         """Execute a query and return the result"""
@@ -76,7 +77,10 @@ class Database:
             with closing(self.connect()) as connection:
                 with connection:
                     with closing(connection.cursor()) as cursor:
-                        cursor.execute(query, params or ())
+                        try:
+                            cursor.execute(query, params or ())
+                        except sqlite3.Error as e:
+                            return DATABASE_ERROR, str(e), []
                         return SUCCESS, "", cursor.fetchall()
         except sqlite3.Error as e:
             return DATABASE_ERROR, str(e), []
@@ -100,8 +104,3 @@ class Database:
                         return SUCCESS, ""
         except sqlite3.Error as e:
             return DATABASE_ERROR, str(e)
-
-# Example usage:
-# db = Database('/path/to/your/database.db')
-# result = db.execute_query('SELECT * FROM your_table')
-# db.execute_update('INSERT INTO your_table (column1, column2) VALUES (?, ?)', (value1, value2))

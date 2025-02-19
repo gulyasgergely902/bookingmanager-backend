@@ -20,9 +20,12 @@ def home():
 @app.route('/bookings', methods=['GET'])
 def get_bookings():
     """Return all booking time slots for the given date"""
-    booking_date = request.form.get('date')
+    booking_date = request.args.get('date')
+    if booking_date is None:
+        return jsonify({"error-msg": "No input date given"}), 400
+
     if Validator.validate_date(booking_date) != VALIDATION_SUCCESS:
-        return jsonify({"error-msg": "Invalid input date to get bookings"}), 400
+        return jsonify({"error-msg": "Either the date or it's format is invalid. Valid date format is YYYY-MM-DD"}), 400
 
     ret, err, results = db.execute_query(
         'SELECT id, date, time, duration, available FROM bookings WHERE date=?', (booking_date,))
