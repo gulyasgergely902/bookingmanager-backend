@@ -5,7 +5,7 @@ from datetime import datetime
 from flask import Flask, jsonify, request
 
 from database import Database
-from statuscodes import DATABASE_ERROR, VALIDATION_SUCCESS
+from statuscodes import DATABASE_ERROR, VALIDATION_SUCCESS, SUCCESS
 from utils import TimeUtils, Validator
 
 app = Flask(__name__)
@@ -68,7 +68,7 @@ def create_time_slot():
     if check_for_overlaps(bookings_for_today, date, time, duration):
         return jsonify({"error-msg": "Overlapping booking found"}), 400
 
-    ret, err = db.execute_update(
+    ret, err, _ = db.execute_update(
         "INSERT INTO bookings (date, time, duration) VALUES (?, ?, ?)", (date, time, duration))
     if ret == DATABASE_ERROR:
         return jsonify({"error-msg": f"Error inserting data to the database; error: {err}"}), 400
@@ -111,15 +111,14 @@ def delete_time_slot():
     if error_response:
         return error_response
 
-    ret, err, booking = db.execute_query(
-        "SELECT id FROM bookings WHERE id = ?", (time_slot_id,))
+    ret, err, exists = time_slot_exists(time_slot_id)
     if ret == DATABASE_ERROR:
         return jsonify({"error-msg": f"Error during database operation; error: {err}"}), 400
 
-    if len(booking) == 0:
-        return jsonify({"error-msg": "Time slot not found"}), 400
+    if not exists:
+        return jsonify({"error-msg": "Time slot not found; err: {err}"}), 400
 
-    ret, err = db.execute_update(
+    ret, err, _ = db.execute_update(
         "DELETE FROM bookings WHERE id = ?", (time_slot_id,))
     if ret == DATABASE_ERROR:
         return jsonify({"error-msg": f"Error during database operation; error: {err}"}), 400
@@ -148,15 +147,14 @@ def book_time_slot():
     if error_response:
         return error_response
 
-    ret, err, booking = db.execute_query(
-        "SELECT available FROM bookings WHERE id = ?", (time_slot_id,))
+    ret, err, exists = time_slot_exists(time_slot_id)
     if ret == DATABASE_ERROR:
         return jsonify({"error-msg": f"Error during database operation; error: {err}"}), 400
 
-    if len(booking) == 0:
-        return jsonify({"error-msg": "Time slot not found"}), 400
+    if not exists:
+        return jsonify({"error-msg": "Time slot not found; err: {err}"}), 400
 
-    ret, err = db.execute_update(
+    ret, err, _ = db.execute_update(
         "UPDATE bookings SET available = 0 WHERE id = ?", (time_slot_id,))
     if ret == DATABASE_ERROR:
         return jsonify({"error-msg": f"Error during database operation; error: {err}"}), 400
@@ -175,6 +173,15 @@ def validate_book_time_slot_input(time_slot_id, available):
 
     return None
 
+
+def time_slot_exists(time_slot_id) -> tuple[int, str, bool]:
+    """Get the count of time slots with the given id"""
+    ret, err, time_slots = db.execute_query(
+        "SELECT available FROM bookings WHERE id = ?", (time_slot_id,))
+    if ret == DATABASE_ERROR:
+        return ret, err, False
+
+    return SUCCESS, "", len(time_slots) > 0
 
 if __name__ == '__main__':
     app.run(debug=True)  # pragma: no cover

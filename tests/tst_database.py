@@ -162,7 +162,7 @@ class TestDatabase(unittest.TestCase):
         """Test execute_update with integrity check failed"""
         db = Database("test.sqlite")
         with patch("database.Database.check_db_integrity", return_value=(DATABASE_ERROR, "Mocked error")):
-            status, message = db.execute_update("")
+            status, message, _ = db.execute_update("")
 
             self.assertEqual(status, DATABASE_ERROR)
             self.assertIn("Database integrity check failed", message)
@@ -172,7 +172,7 @@ class TestDatabase(unittest.TestCase):
         db = Database("test.sqlite")
         with patch("database.Database.check_db_integrity", return_value=(SUCCESS, "")), \
                 patch("database.Database.connect", side_effect=sqlite3.Error("Mocked error")):
-            status, message = db.execute_update("")
+            status, message, _ = db.execute_update("")
 
             self.assertEqual(status, DATABASE_ERROR)
             self.assertIn("Mocked error", message)
@@ -189,7 +189,7 @@ class TestDatabase(unittest.TestCase):
         with patch("database.Database.check_db_integrity", return_value=(SUCCESS, "")), \
                 patch("database.Database.connect", return_value=mock_connection):
             mock_connection = db.connect()
-            status, message = db.execute_update("")
+            status, message, _ = db.execute_update("")
 
             self.assertEqual(status, DATABASE_ERROR)
             self.assertIn("Mocked error", message)
@@ -204,7 +204,7 @@ class TestDatabase(unittest.TestCase):
         with patch("database.Database.check_db_integrity", return_value=(SUCCESS, "")), \
                 patch("database.Database.connect", return_value=mock_connection):
             mock_connection = db.connect()
-            status, message = db.execute_update("")
+            status, message, _ = db.execute_update("")
             mock_connection.commit.assert_called_once()
 
             self.assertEqual(status, SUCCESS)

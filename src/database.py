@@ -66,7 +66,7 @@ class Database:
 
         return SUCCESS, ""
 
-    def execute_query(self, query, params=None) -> tuple[int, str, list[Any]]:
+    def _execute(self, query, params=None, fetch=True) -> tuple[int, str, list[Any]]:
         """Execute a query and return the result"""
         print("Checking database integrity...")
         ret, err = self.check_db_integrity()
@@ -79,28 +79,19 @@ class Database:
                     with closing(connection.cursor()) as cursor:
                         try:
                             cursor.execute(query, params or ())
+                            if fetch:
+                                return SUCCESS, "", cursor.fetchall()
+                            connection.commit()
+                            return SUCCESS, "", []
                         except sqlite3.Error as e:
                             return DATABASE_ERROR, str(e), []
-                        return SUCCESS, "", cursor.fetchall()
         except sqlite3.Error as e:
             return DATABASE_ERROR, str(e), []
 
+    def execute_query(self, query, params=None) -> tuple[int, str, list[Any]]:
+        """Execute a query and return the result"""
+        return self._execute(query, params, fetch=True)
+
     def execute_update(self, query, params=None) -> tuple[int, str]:
         """Execute an update query"""
-        print("Checking database integrity...")
-        ret, err = self.check_db_integrity()
-        if ret != SUCCESS:
-            return DATABASE_ERROR, f"Database integrity check failed; {str(err)}"
-
-        try:
-            with closing(self.connect()) as connection:
-                with connection:
-                    with closing(connection.cursor()) as cursor:
-                        try:
-                            cursor.execute(query, params or ())
-                        except sqlite3.Error as e:
-                            return DATABASE_ERROR, str(e)
-                        connection.commit()
-                        return SUCCESS, ""
-        except sqlite3.Error as e:
-            return DATABASE_ERROR, str(e)
+        return self._execute(query, params, fetch=False)

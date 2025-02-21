@@ -146,7 +146,7 @@ class TestServer(unittest.TestCase):
     def test_create_time_slot_execute_update_error(self, mock_execute_update, mock_execute_query):
         """Test database error when inserting a booking"""
         mock_execute_query.return_value = (SUCCESS, "", [])
-        mock_execute_update.return_value = (DATABASE_ERROR, "Mock error")
+        mock_execute_update.return_value = (DATABASE_ERROR, "Mock error", [])
 
         response = self.client.post('/bookings', data={
             'date': '2025-02-20',
@@ -163,7 +163,7 @@ class TestServer(unittest.TestCase):
     def test_create_time_slot_success(self, mock_execute_update, mock_execute_query):
         """Test create booking success"""
         mock_execute_query.return_value = (SUCCESS, "", [])
-        mock_execute_update.return_value = (SUCCESS, "")
+        mock_execute_update.return_value = (SUCCESS, "", [])
 
         response = self.client.post('/bookings', data={
             'date': '2025-02-20',
@@ -213,7 +213,7 @@ class TestServer(unittest.TestCase):
     def test_delete_time_slot_execute_update_error(self, mock_execute_update, mock_execute_query):
         """Test database error when deleting a booking"""
         mock_execute_query.return_value = (SUCCESS, "", [(1,)])
-        mock_execute_update.return_value = (DATABASE_ERROR, "Mock error")
+        mock_execute_update.return_value = (DATABASE_ERROR, "Mock error", [])
 
         response = self.client.delete('/bookings', data={"id": 1})
 
@@ -226,7 +226,7 @@ class TestServer(unittest.TestCase):
     def test_delete_time_slot_success(self, mock_execute_update, mock_execute_query):
         """Test delete booking time slot success"""
         mock_execute_query.return_value = (SUCCESS, "", [(1,)])
-        mock_execute_update.return_value = (SUCCESS, "")
+        mock_execute_update.return_value = (SUCCESS, "", [])
 
         response = self.client.delete('/bookings', data={"id": 1})
 
@@ -286,7 +286,7 @@ class TestServer(unittest.TestCase):
     def test_book_time_slot_execute_update_error(self, mock_execute_update, mock_execute_query):
         """Test database error when booking a time slot"""
         mock_execute_query.return_value = (SUCCESS, "", [(1,)])
-        mock_execute_update.return_value = (DATABASE_ERROR, "Mock error")
+        mock_execute_update.return_value = (DATABASE_ERROR, "Mock error", [])
 
         response = self.client.put('/bookings', data={"id": 1, "available": 1})
 
@@ -299,7 +299,7 @@ class TestServer(unittest.TestCase):
     def test_book_time_slot_success(self, mock_execute_update, mock_execute_query):
         """Test book time slot success"""
         mock_execute_query.return_value = (SUCCESS, "", [(1,)])
-        mock_execute_update.return_value = (SUCCESS, "")
+        mock_execute_update.return_value = (SUCCESS, "", [])
 
         response = self.client.put('/bookings', data={"id": 1, "available": 1})
 
