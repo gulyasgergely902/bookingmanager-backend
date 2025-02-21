@@ -19,7 +19,7 @@ def home():
 
 
 @app.route('/bookings', methods=['GET'])
-def get_bookings():
+def get_time_slots():
     """Return all booking time slots for the given date"""
     booking_date = request.args.get('date')
     if booking_date is None:
@@ -40,7 +40,7 @@ def get_bookings():
 
 
 @app.route('/bookings', methods=['POST'])
-def create_booking():
+def create_time_slot():
     """Create a new booking time slot"""
     date = request.form.get('date')
     time = request.form.get('time')

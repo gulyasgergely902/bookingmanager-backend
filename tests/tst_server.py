@@ -20,14 +20,14 @@ class TestServer(unittest.TestCase):
         self.assertIn("Unauthorized resource",
                       response.get_json().get("error-msg"))
 
-    def test_get_bookings_no_date_provided(self):
+    def test_get_time_slots_no_date_provided(self):
         """Test when no date parameter is provided"""
         response = self.client.get('/bookings')
         self.assertEqual(response.status_code, 400)
         self.assertIn("Missing input date",
                       response.get_json().get("error-msg"))
 
-    def test_get_bookings_invalid_date(self):
+    def test_get_time_slots_invalid_date(self):
         """Test when an invalid date is provided"""
         response = self.client.get(
             '/bookings', query_string={"date": "2025-02-30"})
@@ -36,7 +36,7 @@ class TestServer(unittest.TestCase):
                       response.get_json().get("error-msg"))
 
     @patch('server.db.execute_query')
-    def test_get_bookings_database_execute_query_failure(self, mock_execute_query):
+    def test_get_time_slots_database_execute_query_failure(self, mock_execute_query):
         """Test when the database query fails"""
         mock_execute_query.return_value = (DATABASE_ERROR, "Mock error", None)
 
@@ -47,7 +47,7 @@ class TestServer(unittest.TestCase):
                       response.get_json().get("error-msg"))
 
     @patch('server.db.execute_query')
-    def test_get_bookings_database_execute_query_success(self, mock_execute_query):
+    def test_get_time_slots_database_execute_query_success(self, mock_execute_query):
         """Test when the database query is successful"""
         mock_execute_query.return_value = (None, None, [
             (1, '2025-02-19', '10:00', 60, 0),
@@ -61,14 +61,14 @@ class TestServer(unittest.TestCase):
         self.assertIn('slots', response.json)
         self.assertEqual(len(response.json['slots']), 2)
 
-    def test_create_booking_no_data_provided(self):
+    def test_create_time_slot_no_data_provided(self):
         """Test when no input data is provided"""
         response = self.client.post('/bookings')
         self.assertEqual(response.status_code, 400)
         self.assertIn("Missing input to create a new time slot",
                       response.get_json().get("error-msg"))
 
-    def test_create_booking_invalid_date(self):
+    def test_create_time_slot_invalid_date(self):
         """Test when an invalid date is provided"""
         response = self.client.post('/bookings', data={
             'date': '2025-02-30', 'time': '10:00', 'duration': '60'})
@@ -76,7 +76,7 @@ class TestServer(unittest.TestCase):
         self.assertIn("Invalid input to create a new time slot",
                       response.get_json().get("error-msg"))
 
-    def test_create_booking_invalid_time(self):
+    def test_create_time_slot_invalid_time(self):
         """Test when an invalid time is provided"""
         response = self.client.post('/bookings', data={
             'date': '2025-02-19', 'time': '25:00', 'duration': '60'})
@@ -84,7 +84,7 @@ class TestServer(unittest.TestCase):
         self.assertIn("Invalid input to create a new time slot",
                       response.get_json().get("error-msg"))
 
-    def test_create_booking_invalid_duration(self):
+    def test_create_time_slot_invalid_duration(self):
         """Test when an invalid duration is provided"""
         response = self.client.post('/bookings', data={
             'date': '2025-02-19', 'time': '10:00', 'duration': 'abc'})
@@ -93,7 +93,7 @@ class TestServer(unittest.TestCase):
                       response.get_json().get("error-msg"))
 
     @patch('server.db.execute_query')
-    def test_create_booking_execute_query_failure(self, mock_execute_query):
+    def test_create_time_slot_execute_query_failure(self, mock_execute_query):
         """Test when the database query fails"""
         mock_execute_query.return_value = (DATABASE_ERROR, "Mock error", None)
 
@@ -104,7 +104,7 @@ class TestServer(unittest.TestCase):
                       response.get_json().get("error-msg"))
 
     @patch('server.db.execute_query')
-    def test_create_booking_timeslot_overlap_failure(self, mock_execute_query):
+    def test_create_time_slot_timeslot_overlap_failure(self, mock_execute_query):
         """Test when the new booking overlaps with an existing booking"""
         mock_execute_query.return_value = (SUCCESS, "", [
             ('10:00', 60),
@@ -119,7 +119,7 @@ class TestServer(unittest.TestCase):
 
     @patch('server.db.execute_query')
     @patch('server.db.execute_update')
-    def test_create_booking_execute_update_error(self, mock_execute_update, mock_execute_query):
+    def test_create_time_slot_execute_update_error(self, mock_execute_update, mock_execute_query):
         """Test database error when inserting a booking"""
         mock_execute_query.return_value = (SUCCESS, "", [])
         mock_execute_update.return_value = (DATABASE_ERROR, "Mock error")
@@ -136,7 +136,7 @@ class TestServer(unittest.TestCase):
 
     @patch('server.db.execute_query')
     @patch('server.db.execute_update')
-    def test_create_booking_success(self, mock_execute_update, mock_execute_query):
+    def test_create_time_slot_success(self, mock_execute_update, mock_execute_query):
         """Test create booking success"""
         mock_execute_query.return_value = (SUCCESS, "", [])
         mock_execute_update.return_value = (SUCCESS, "")
