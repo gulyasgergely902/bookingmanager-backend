@@ -2,7 +2,7 @@
 
 from datetime import datetime, timedelta
 
-from statuscodes import VALIDATION_ERROR, VALIDATION_SUCCESS
+from .statuscodes import VALIDATION_ERROR, VALIDATION_SUCCESS
 
 
 class Validator:
@@ -43,5 +43,6 @@ class TimeUtils:
     def check_overlap(new_start_dt: datetime, new_duration: int, existing_start_dt: datetime, existing_duration: int) -> bool:
         """Check for overlapping time slots"""
         new_end_dt = new_start_dt + timedelta(minutes=new_duration)
-        existing_end_dt = existing_start_dt + timedelta(minutes=float(existing_duration))
+        existing_end_dt = existing_start_dt + \
+            timedelta(minutes=float(existing_duration))
         return not (new_end_dt <= existing_start_dt or new_start_dt >= existing_end_dt)

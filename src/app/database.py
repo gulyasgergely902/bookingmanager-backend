@@ -4,7 +4,7 @@ from contextlib import closing
 from typing import Any
 import os.path
 
-from statuscodes import DATABASE_ERROR, SUCCESS
+from .statuscodes import DATABASE_ERROR, SUCCESS
 
 
 class Database:
