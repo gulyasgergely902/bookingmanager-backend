@@ -155,7 +155,7 @@ def book_time_slot():
         return jsonify({"error-msg": "Time slot not found; err: {err}"}), 400
 
     ret, err, _ = db.execute_update(
-        "UPDATE bookings SET available = 0 WHERE id = ?", (time_slot_id,))
+        "UPDATE bookings SET available = ? WHERE id = ?", (available, time_slot_id,))
     if ret == DATABASE_ERROR:
         return jsonify({"error-msg": f"Error during database operation; error: {err}"}), 400
 
