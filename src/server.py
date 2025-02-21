@@ -46,28 +46,17 @@ def create_booking():
     time = request.form.get('time')
     duration = request.form.get('duration')
 
-    if date is None or \
-            time is None or \
-            duration is None:
-        return jsonify({"error-msg": "Missing input to create a new time slot"}), 400
-
-    if Validator.validate_date(date) != VALIDATION_SUCCESS or \
-            Validator.validate_time(time) != VALIDATION_SUCCESS or \
-            Validator.validate_integer(duration) != VALIDATION_SUCCESS:
-        return jsonify({"error-msg": "Invalid input to create a new time slot"}), 400
+    error_response = validate_booking_input(date, time, duration)
+    if error_response:
+        return error_response
 
     ret, err, bookings_for_today = db.execute_query(
         "SELECT time, duration FROM bookings WHERE date = ?", (date,))
     if ret == DATABASE_ERROR:
         return jsonify({"error-msg": f"Error during database operation; error: {err}"}), 400
 
-    new_timeslot_start = datetime.strptime(f"{date} {time}", "%Y-%m-%d %H:%M")
-    for existing_start, existing_duration in bookings_for_today:
-        existing_start_dt = datetime.strptime(
-            f"{date} {existing_start}", "%Y-%m-%d %H:%M")
-
-        if TimeUtils.check_overlap(new_timeslot_start, int(duration), existing_start_dt, int(existing_duration)):
-            return jsonify({"error-msg": "Overlapping booking found"}), 400
+    if check_for_overlaps(bookings_for_today, date, time, duration):
+        return jsonify({"error-msg": "Overlapping booking found"}), 400
 
     ret, err = db.execute_update(
         "INSERT INTO bookings (date, time, duration) VALUES (?, ?, ?)", (date, time, duration))
@@ -75,6 +64,32 @@ def create_booking():
         return jsonify({"error-msg": f"Error inserting data to the database; error: {err}"}), 400
 
     return jsonify({"error-msg": ""}), 200
+
+
+def validate_booking_input(date, time, duration) -> bool:
+    """Validate the input for creating a booking"""
+    if date is None or time is None or duration is None:
+        return jsonify({"error-msg": "Missing input to create a new time slot"}), 400
+
+    if Validator.validate_date(date) != VALIDATION_SUCCESS or \
+            Validator.validate_time(time) != VALIDATION_SUCCESS or \
+            Validator.validate_integer(duration) != VALIDATION_SUCCESS:
+        return jsonify({"error-msg": "Invalid input to create a new time slot"}), 400
+
+    return None
+
+
+def check_for_overlaps(bookings_for_today, date, time, duration):
+    """Check for overlapping bookings"""
+    new_timeslot_start = datetime.strptime(f"{date} {time}", "%Y-%m-%d %H:%M")
+    for existing_start, existing_duration in bookings_for_today:
+        existing_start_dt = datetime.strptime(
+            f"{date} {existing_start}", "%Y-%m-%d %H:%M")
+
+        if TimeUtils.check_overlap(new_timeslot_start, int(duration), existing_start_dt, int(existing_duration)):
+            return True
+
+    return False
 
 
 @app.route('/bookings', methods=['DELETE'])
