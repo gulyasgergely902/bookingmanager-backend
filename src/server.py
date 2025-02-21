@@ -2,10 +2,11 @@
 
 from datetime import datetime
 
-from database import Database
 from flask import Flask, jsonify, request
+
+from database import Database
 from statuscodes import DATABASE_ERROR, VALIDATION_SUCCESS
-from utils import Validator, TimeUtils
+from utils import TimeUtils, Validator
 
 app = Flask(__name__)
 db = Database('data.sqlite')
@@ -35,7 +36,7 @@ def get_bookings():
     booking_columns = ["id", "date", "time", "duration", "available"]
     json_results = [dict(zip(booking_columns, result_row))
                     for result_row in results]
-    return jsonify({"bookings": json_results}), 200
+    return jsonify({"count": len(json_results), "slots": json_results}), 200
 
 
 @app.route('/bookings', methods=['POST'])
@@ -76,5 +77,31 @@ def create_booking():
     return jsonify({"error-msg": ""}), 200
 
 
+@app.route('/bookings', methods=['DELETE'])
+def delete_booking():
+    """Delete a booking time slot"""
+    time_slot_id = request.form.get('id')
+    if time_slot_id is None:
+        return jsonify({"error-msg": "Missing time slot id"}), 400
+
+    if Validator.validate_integer(time_slot_id) != VALIDATION_SUCCESS:
+        return jsonify({"error-msg": "Invalid time slot id"}), 400
+
+    ret, err, booking = db.execute_query(
+        "SELECT id FROM bookings WHERE id = ?", (time_slot_id,))
+    if ret == DATABASE_ERROR:
+        return jsonify({"error-msg": f"Error during database operation; error: {err}"}), 400
+
+    if len(booking) == 0:
+        return jsonify({"error-msg": "Time slot not found"}), 400
+
+    ret, err = db.execute_update(
+        "DELETE FROM bookings WHERE id = ?", (time_slot_id,))
+    if ret == DATABASE_ERROR:
+        return jsonify({"error-msg": f"Error during database operation; error: {err}"}), 400
+
+    return jsonify({"error-msg": ""}), 200
+
+
 if __name__ == '__main__':
-    app.run(debug=True) # pragma: no cover
+    app.run(debug=True)  # pragma: no cover
