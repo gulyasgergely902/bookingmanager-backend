@@ -93,7 +93,7 @@ def check_for_overlaps(bookings_for_today, date, time, duration):
 
 
 @app.route('/bookings', methods=['DELETE'])
-def delete_booking():
+def delete_time_slot():
     """Delete a booking time slot"""
     time_slot_id = request.form.get('id')
     if time_slot_id is None:

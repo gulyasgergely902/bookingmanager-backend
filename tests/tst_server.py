@@ -150,14 +150,14 @@ class TestServer(unittest.TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertIn("", response.get_json().get("error-msg"))
 
-    def test_delete_booking_no_id_provided(self):
+    def test_delete_time_slot_no_id_provided(self):
         """Test when no id is provided"""
         response = self.client.delete('/bookings')
         self.assertEqual(response.status_code, 400)
         self.assertIn("Missing time slot id",
                       response.get_json().get("error-msg"))
 
-    def test_delete_booking_invalid_id(self):
+    def test_delete_time_slot_invalid_id(self):
         """Test when an invalid id is provided"""
         response = self.client.delete('/bookings', data={"id": "abc"})
         self.assertEqual(response.status_code, 400)
@@ -165,7 +165,7 @@ class TestServer(unittest.TestCase):
                       response.get_json().get("error-msg"))
 
     @patch('server.db.execute_query')
-    def test_delete_booking_execute_query_failure(self, mock_execute_query):
+    def test_delete_time_slot_execute_query_failure(self, mock_execute_query):
         """Test when the database query fails"""
         mock_execute_query.return_value = (DATABASE_ERROR, "Mock error", None)
 
@@ -175,7 +175,7 @@ class TestServer(unittest.TestCase):
                       response.get_json().get("error-msg"))
 
     @patch('server.db.execute_query')
-    def test_delete_booking_time_slot_not_found(self, mock_execute_query):
+    def test_delete_time_slot_time_slot_not_found(self, mock_execute_query):
         """Test when the booking time slot is not found"""
         mock_execute_query.return_value = (SUCCESS, "", [])
 
@@ -186,7 +186,7 @@ class TestServer(unittest.TestCase):
 
     @patch('server.db.execute_query')
     @patch('server.db.execute_update')
-    def test_delete_booking_execute_update_error(self, mock_execute_update, mock_execute_query):
+    def test_delete_time_slot_execute_update_error(self, mock_execute_update, mock_execute_query):
         """Test database error when deleting a booking"""
         mock_execute_query.return_value = (SUCCESS, "", [(1,)])
         mock_execute_update.return_value = (DATABASE_ERROR, "Mock error")
@@ -199,7 +199,7 @@ class TestServer(unittest.TestCase):
 
     @patch('server.db.execute_query')
     @patch('server.db.execute_update')
-    def test_delete_booking_success(self, mock_execute_update, mock_execute_query):
+    def test_delete_time_slot_success(self, mock_execute_update, mock_execute_query):
         """Test delete booking time slot success"""
         mock_execute_query.return_value = (SUCCESS, "", [(1,)])
         mock_execute_update.return_value = (SUCCESS, "")
