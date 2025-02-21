@@ -208,3 +208,76 @@ class TestServer(unittest.TestCase):
 
         self.assertEqual(response.status_code, 200)
         self.assertIn("", response.get_json().get("error-msg"))
+
+    def test_book_time_slot_no_data_provided(self):
+        """Test when no time slot id is provided"""
+        response = self.client.put('/bookings')
+        self.assertEqual(response.status_code, 400)
+        self.assertIn("Missing time slot id and/or availability",
+                      response.get_json().get("error-msg"))
+
+    def test_book_time_slot_only_id_provided(self):
+        """Test when no availability is provided"""
+        response = self.client.put('/bookings', data={"id": 1})
+        self.assertEqual(response.status_code, 400)
+        self.assertIn("Missing time slot id and/or availability",
+                      response.get_json().get("error-msg"))
+
+    def test_book_time_slot_only_availability_provided(self):
+        """Test when no time slot id is provided"""
+        response = self.client.put('/bookings', data={"available": 1})
+        self.assertEqual(response.status_code, 400)
+        self.assertIn("Missing time slot id and/or availability",
+                      response.get_json().get("error-msg"))
+
+    def test_book_time_slot_invalid_id(self):
+        """Test when an invalid time slot id is provided"""
+        response = self.client.put('/bookings', data={"id": "abc", "available": 1})
+        self.assertEqual(response.status_code, 400)
+        self.assertIn("Invalid time slot id",
+                      response.get_json().get("error-msg"))
+
+    @patch('server.db.execute_query')
+    def test_book_time_slot_execute_query_failure(self, mock_execute_query):
+        """Test when the database query fails"""
+        mock_execute_query.return_value = (DATABASE_ERROR, "Mock error", None)
+
+        response = self.client.put('/bookings', data={"id": 1, "available": 1})
+        self.assertEqual(response.status_code, 400)
+        self.assertIn("Error during database operation; error: Mock error",
+                      response.get_json().get("error-msg"))
+
+    @patch('server.db.execute_query')
+    def test_book_time_slot_time_slot_not_found(self, mock_execute_query):
+        """Test when the booking time slot is not found"""
+        mock_execute_query.return_value = (SUCCESS, "", [])
+
+        response = self.client.put('/bookings', data={"id": 1, "available": 1})
+        self.assertEqual(response.status_code, 400)
+        self.assertIn("Time slot not found",
+                      response.get_json().get("error-msg"))
+
+    @patch('server.db.execute_query')
+    @patch('server.db.execute_update')
+    def test_book_time_slot_execute_update_error(self, mock_execute_update, mock_execute_query):
+        """Test database error when booking a time slot"""
+        mock_execute_query.return_value = (SUCCESS, "", [(1,)])
+        mock_execute_update.return_value = (DATABASE_ERROR, "Mock error")
+
+        response = self.client.put('/bookings', data={"id": 1, "available": 1})
+
+        self.assertEqual(response.status_code, 400)
+        self.assertIn("Error during database operation",
+                      response.get_json().get("error-msg"))
+
+    @patch('server.db.execute_query')
+    @patch('server.db.execute_update')
+    def test_book_time_slot_success(self, mock_execute_update, mock_execute_query):
+        """Test book time slot success"""
+        mock_execute_query.return_value = (SUCCESS, "", [(1,)])
+        mock_execute_update.return_value = (SUCCESS, "")
+
+        response = self.client.put('/bookings', data={"id": 1, "available": 1})
+
+        self.assertEqual(response.status_code, 200)
+        self.assertIn("", response.get_json().get("error-msg"))
