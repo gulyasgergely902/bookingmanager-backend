@@ -68,6 +68,30 @@ class TestServer(unittest.TestCase):
         self.assertIn("Missing input to create a new time slot",
                       response.get_json().get("error-msg"))
 
+    def test_create_time_slot_no_date_provided(self):
+        """Test when no date is provided"""
+        response = self.client.post('/bookings', data={
+            'time': '10:00', 'duration': '60'})
+        self.assertEqual(response.status_code, 400)
+        self.assertIn("Missing input to create a new time slot",
+                      response.get_json().get("error-msg"))
+
+    def test_create_time_slot_no_time_provided(self):
+        """Test when no time is provided"""
+        response = self.client.post('/bookings', data={
+            'date': '2025-02-19', 'duration': '60'})
+        self.assertEqual(response.status_code, 400)
+        self.assertIn("Missing input to create a new time slot",
+                      response.get_json().get("error-msg"))
+
+    def test_create_time_slot_no_duration_provided(self):
+        """Test when no duration is provided"""
+        response = self.client.post('/bookings', data={
+            'date': '2025-02-19', 'time': '10:00'})
+        self.assertEqual(response.status_code, 400)
+        self.assertIn("Missing input to create a new time slot",
+                      response.get_json().get("error-msg"))
+
     def test_create_time_slot_invalid_date(self):
         """Test when an invalid date is provided"""
         response = self.client.post('/bookings', data={
