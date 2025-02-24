@@ -4,7 +4,7 @@ from contextlib import closing
 from typing import Any
 import os.path
 
-from .statuscodes import DATABASE_ERROR, SUCCESS
+from .statuscodes import DATABASE_ERROR, DATABASE_SUCCESS
 
 
 class Database:
@@ -46,7 +46,7 @@ class Database:
         if not db_exists or not required_tables_exists:
             return self.create_tables(cursor)
 
-        return SUCCESS, ""
+        return DATABASE_SUCCESS, ""
 
     @staticmethod
     def create_tables(cursor) -> tuple[int, str]:
@@ -64,13 +64,13 @@ class Database:
         except sqlite3.Error as e:
             return DATABASE_ERROR, f"Could not create database tables; {str(e)}"
 
-        return SUCCESS, ""
+        return DATABASE_SUCCESS, ""
 
     def _execute(self, query, params=None, fetch=True) -> tuple[int, str, list[Any]]:
         """Execute a query and return the result"""
         print("Checking database integrity...")
         ret, err = self.check_db_integrity()
-        if ret != SUCCESS:
+        if ret != DATABASE_SUCCESS:
             return DATABASE_ERROR, f"Database integrity check failed; {str(err)}", []
 
         try:
@@ -80,9 +80,9 @@ class Database:
                         try:
                             cursor.execute(query, params or ())
                             if fetch:
-                                return SUCCESS, "", cursor.fetchall()
+                                return DATABASE_SUCCESS, "", cursor.fetchall()
                             connection.commit()
-                            return SUCCESS, "", []
+                            return DATABASE_SUCCESS, "", []
                         except sqlite3.Error as e:
                             return DATABASE_ERROR, str(e), []
         except sqlite3.Error as e:

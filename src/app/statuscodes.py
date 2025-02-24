@@ -1,7 +1,10 @@
 """File for storing status codes for the booking backend"""
 
-# Database return codes
+# Generic return codes
 SUCCESS = 0
+
+# Database return codes
+DATABASE_SUCCESS = 0
 GENERIC_ERROR = 1
 DATABASE_ERROR = 2
 
