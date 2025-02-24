@@ -155,11 +155,11 @@ def validate_book_time_slot_input(time_slot_id, available) -> tuple[int, str]:
     return VALIDATION_SUCCESS, ""
 
 
-def time_slot_exists(db, time_slot_id) -> tuple[int, str, bool]:
+def time_slot_exists(database, time_slot_id) -> tuple[int, str, bool]:
     """Get the count of time slots with the given id"""
-    ret, err, time_slots = db.execute_query(
+    ret, err, time_slots = database.execute_query(
         "SELECT available FROM bookings WHERE id = ?", (time_slot_id,))
     if ret == DATABASE_ERROR:
-        return ret, err, False
+        return ret, err, None
 
     return SUCCESS, "", len(time_slots) > 0
