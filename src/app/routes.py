@@ -21,7 +21,7 @@ def get_bookings():
 
     result, error, status = get_time_slots(booking_date)
 
-    return jsonify(result.get_json() or error.get_json()), status
+    return jsonify(result or error), status
 
 
 @bp.route('/bookings', methods=['POST'])
@@ -33,7 +33,7 @@ def post_bookings():
 
     result, error, status = create_time_slot(date, time, duration)
 
-    return jsonify(result.get_json() or error.get_json()), status
+    return jsonify(result or error), status
 
 
 @bp.route('/bookings', methods=['DELETE'])
@@ -43,7 +43,7 @@ def delete_bookings():
 
     result, error, status = delete_time_slot(time_slot_id)
 
-    return jsonify(result.get_json() or error.get_json()), status
+    return jsonify(result or error), status
 
 
 @bp.route('/bookings', methods=['PUT'])
@@ -54,4 +54,4 @@ def put_bookings():
 
     result, error, status = book_time_slot(time_slot_id, available)
 
-    return jsonify(result.get_json() or error.get_json()), status
+    return jsonify(result or error), status
