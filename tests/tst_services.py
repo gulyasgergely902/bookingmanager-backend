@@ -154,6 +154,25 @@ class TestServices(unittest.TestCase):
         self.assertEqual(ret, VALIDATION_ERROR)
         self.assertEqual(error, "Missing input to create a new time slot")
 
+    def test_validate_create_time_slot_input_invalid_date(self):
+        """Test when date is invalid for validate_create_time_slot_input"""
+        ret, error = validate_create_time_slot_input("2025-02-30", "14:30", 30)
+        self.assertEqual(ret, VALIDATION_ERROR)
+        self.assertEqual(error, "Invalid input to create a new time slot")
+
+    def test_validate_create_time_slot_input_invalid_time(self):
+        """Test when time is invalid for validate_create_time_slot_input"""
+        ret, error = validate_create_time_slot_input("2025-02-14", "25:30", 30)
+        self.assertEqual(ret, VALIDATION_ERROR)
+        self.assertEqual(error, "Invalid input to create a new time slot")
+
+    def test_validate_create_time_slot_input_invalid_duration(self):
+        """Test when duration is invalid for validate_create_time_slot_input"""
+        ret, error = validate_create_time_slot_input(
+            "2025-02-14", "14:30", "abc")
+        self.assertEqual(ret, VALIDATION_ERROR)
+        self.assertEqual(error, "Invalid input to create a new time slot")
+
     def test_validate_create_time_slot_success(self):
         """Test when input is valid for validate_create_time_slot_input"""
         ret, error = validate_create_time_slot_input(
@@ -245,6 +264,12 @@ class TestServices(unittest.TestCase):
         self.assertEqual(ret, VALIDATION_ERROR)
         self.assertEqual(error, "Invalid time slot id")
 
+    def test_validate_delete_time_slot_success(self):
+        """Test when input is valid for validate_delete_time_slot_input"""
+        ret, error = validate_delete_time_slot_input(1)
+        self.assertEqual(ret, VALIDATION_SUCCESS)
+        self.assertEqual(error, "")
+
     @patch("app.services.validate_book_time_slot_input")
     def test_book_time_slot_invalid_input(self, mock_validator):
         """Test when invalid input is provided for book_time_slot"""
@@ -328,6 +353,12 @@ class TestServices(unittest.TestCase):
         ret, error = validate_book_time_slot_input(1, "abc")
         self.assertEqual(ret, VALIDATION_ERROR)
         self.assertEqual(error, "Invalid time slot id and/or availability")
+
+    def test_validate_book_time_slot_success(self):
+        """Test when input is valid for validate_book_time_slot_input"""
+        ret, error = validate_book_time_slot_input(1, 1)
+        self.assertEqual(ret, VALIDATION_SUCCESS)
+        self.assertEqual(error, "")
 
     @patch.object(Database, "execute_query")
     def test_time_slot_exists_database_error(self, mock_execute_query):
