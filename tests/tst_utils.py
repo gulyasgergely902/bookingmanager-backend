@@ -1,8 +1,8 @@
 import unittest
 
 from datetime import datetime
-from utils import Validator, TimeUtils
-from statuscodes import VALIDATION_SUCCESS, VALIDATION_ERROR
+from app.utils import Validator, TimeUtils
+from app.statuscodes import VALIDATION_SUCCESS, VALIDATION_ERROR
 
 
 class TestValidator(unittest.TestCase):
