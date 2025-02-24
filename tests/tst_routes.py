@@ -44,7 +44,8 @@ class TestRoutes(unittest.TestCase):
         """Test when the create_time_slot service is successful"""
         error_json = {'error-msg': ''}
         mock_create_time_slot.return_value = error_json, None, 200
-        response = self.client.post('/bookings', data={'date': '2025-02-14', 'time': '14:30', 'duration': 30})
+        response = self.client.post(
+            '/bookings', data={'date': '2025-02-14', 'time': '14:30', 'duration': 30})
 
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.json, error_json)
@@ -54,11 +55,12 @@ class TestRoutes(unittest.TestCase):
         """Test when the create_time_slot service fails"""
         error_json = {'error-msg': 'Invalid date format'}
         mock_create_time_slot.return_value = None, error_json, 400
-        response = self.client.post('/bookings', data={'date': 'invalid-date', 'time': '14:30', 'duration': 30})
+        response = self.client.post(
+            '/bookings', data={'date': 'invalid-date', 'time': '14:30', 'duration': 30})
 
         self.assertEqual(response.status_code, 400)
         self.assertEqual(response.json, error_json)
-    
+
     @patch('app.routes.delete_time_slot')
     def test_delete_bookigs_success(self, mock_delete_time_slot):
         """Test when the delete_time_slot service is successful"""
@@ -94,7 +96,8 @@ class TestRoutes(unittest.TestCase):
         """Test when the book_time_slot service fails"""
         error_json = {'error-msg': 'Invalid date format'}
         mock_book_time_slot.return_value = None, error_json, 400
-        response = self.client.put('/bookings', data={'id': 'invalid-id', 'available': 0})
+        response = self.client.put(
+            '/bookings', data={'id': 'invalid-id', 'available': 0})
 
         self.assertEqual(response.status_code, 400)
         self.assertEqual(response.json, error_json)
