@@ -4,7 +4,7 @@ from contextlib import closing
 from typing import Any
 import os.path
 
-from statuscodes import DATABASE_ERROR, SUCCESS
+from .statuscodes import DATABASE_ERROR, DATABASE_SUCCESS
 
 
 class Database:
@@ -46,7 +46,7 @@ class Database:
         if not db_exists or not required_tables_exists:
             return self.create_tables(cursor)
 
-        return SUCCESS, ""
+        return DATABASE_SUCCESS, ""
 
     @staticmethod
     def create_tables(cursor) -> tuple[int, str]:
@@ -61,32 +61,17 @@ class Database:
                     available INTEGER DEFAULT 1
                 )
             """)
-            return SUCCESS, ""
         except sqlite3.Error as e:
             return DATABASE_ERROR, f"Could not create database tables; {str(e)}"
 
-    def execute_query(self, query, params=None) -> tuple[int, str, list[Any]]:
+        return DATABASE_SUCCESS, ""
+
+    def _execute(self, query, params=None, fetch=True) -> tuple[int, str, list[Any]]:
         """Execute a query and return the result"""
         print("Checking database integrity...")
         ret, err = self.check_db_integrity()
-        if ret != SUCCESS:
+        if ret != DATABASE_SUCCESS:
             return DATABASE_ERROR, f"Database integrity check failed; {str(err)}", []
-
-        try:
-            with closing(self.connect()) as connection:
-                with connection:
-                    with closing(connection.cursor()) as cursor:
-                        cursor.execute(query, params or ())
-                        return SUCCESS, "", cursor.fetchall()
-        except sqlite3.Error as e:
-            return DATABASE_ERROR, str(e), []
-
-    def execute_update(self, query, params=None) -> tuple[int, str]:
-        """Execute an update query"""
-        print("Checking database integrity...")
-        ret, err = self.check_db_integrity()
-        if ret != SUCCESS:
-            return DATABASE_ERROR, f"Database integrity check failed; {str(err)}"
 
         try:
             with closing(self.connect()) as connection:
@@ -94,14 +79,19 @@ class Database:
                     with closing(connection.cursor()) as cursor:
                         try:
                             cursor.execute(query, params or ())
+                            if fetch:
+                                return DATABASE_SUCCESS, "", cursor.fetchall()
+                            connection.commit()
+                            return DATABASE_SUCCESS, "", []
                         except sqlite3.Error as e:
-                            return DATABASE_ERROR, str(e)
-                        connection.commit()
-                        return SUCCESS, ""
+                            return DATABASE_ERROR, str(e), []
         except sqlite3.Error as e:
-            return DATABASE_ERROR, str(e)
+            return DATABASE_ERROR, str(e), []
 
-# Example usage:
-# db = Database('/path/to/your/database.db')
-# result = db.execute_query('SELECT * FROM your_table')
-# db.execute_update('INSERT INTO your_table (column1, column2) VALUES (?, ?)', (value1, value2))
+    def execute_query(self, query, params=None) -> tuple[int, str, list[Any]]:
+        """Execute a query and return the result"""
+        return self._execute(query, params, fetch=True)
+
+    def execute_update(self, query, params=None) -> tuple[int, str]:
+        """Execute an update query"""
+        return self._execute(query, params, fetch=False)
