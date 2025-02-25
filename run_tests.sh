@@ -1,11 +1,15 @@
 #!/bin/bash
 
+COVERAGE=0
 EXPORT=0
 HTML=0
 UPLOAD=0
 
-while getopts "ehu" opt; do
+while getopts "cehu" opt; do
     case "${opt}" in
+        c)
+            COVERAGE=1
+            ;;
         e)
             EXPORT=1
             ;;
@@ -22,15 +26,16 @@ while getopts "ehu" opt; do
     esac
 done
 
-
-PYTHONPATH=./src python3 -m coverage run --omit="tests/*" -m unittest discover -s tests -p "tst_*.py"
-python3 -m coverage report -m
+if [ $COVERAGE -eq 1 ]; then
+    PYTHONPATH=./src python3 -m coverage run --omit="tests/*" -m unittest discover -s tests -p "tst_*.py"
+    python3 -m coverage report -m
+fi
 if [ $EXPORT -eq 1 ]; then
     echo "Exporting coverage for codacy"
     python3 -m coverage xml -o cobertura.xml
-    if [ $UPLOAD -eq 1 ]; then
-        bash <(curl -Ls https://coverage.codacy.com/get.sh)
-    fi
+fi
+if [ $UPLOAD -eq 1 ] && [ -f "cobertura.xml" ]; then
+    bash <(curl -Ls https://coverage.codacy.com/get.sh)
 fi
 if [ $HTML -eq 1 ]; then
     echo "Exporting coverage for html"
