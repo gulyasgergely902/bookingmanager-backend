@@ -53,7 +53,7 @@ class Bookings(Resource):
     })
 
     create_time_slot_response_model = api.model('Create Time Slot Response', {
-        'err-msg': fields.String(description='The error message if any.')
+        'error-msg': fields.String(description='The error message if any.')
     })
 
     @api.doc(responses={200: 'Success', 400: 'Bad Request', 500: 'Internal Server Error'})
@@ -74,7 +74,7 @@ class Bookings(Resource):
     })
 
     delete_time_slot_response_model = api.model('Delete Time Slot Response', {
-        'err-msg': fields.String(description='The error message if any.')
+        'error-msg': fields.String(description='The error message if any.')
     })
 
     @api.doc(responses={200: 'Success', 400: 'Bad Request', 500: 'Internal Server Error'})
@@ -94,7 +94,7 @@ class Bookings(Resource):
     })
 
     book_time_slot_response_model = api.model('Book Time Slot Response', {
-        'err-msg': fields.String(description='The error message if any.')
+        'error-msg': fields.String(description='The error message if any.')
     })
 
     @api.doc(responses={200: 'Success', 400: 'Bad Request', 500: 'Internal Server Error'})
