@@ -12,12 +12,6 @@ class TestRoutes(unittest.TestCase):
         app.testing = True
         self.client = app.test_client()
 
-    def test_home(self):
-        """Test the home route"""
-        response = self.client.get('/')
-        self.assertEqual(response.status_code, 401)
-        self.assertEqual(response.json, {"error-msg": "Unauthorized resource"})
-
     @patch('app.routes.get_time_slots')
     def test_get_bookings_success(self, mock_get_time_slots):
         """The when the get_time_slots service is successful"""

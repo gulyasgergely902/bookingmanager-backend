@@ -17,3 +17,11 @@ The application...
 - Can list all the available time slots for booking.
 - Can create and remove time slots to be booked.
 - Can modify the time slots' availability.
+
+## Usage
+
+The application setup can be done using the script `setup.sh` which creates a virtual environment for running the backend
+and installs the required python packages. After setup, tests can be run using the `run_tests.sh` which runs the tests
+also generates coverage.
+
+The backend can be started with `run.py` from the `src/` directory.

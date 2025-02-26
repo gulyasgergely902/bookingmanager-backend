@@ -1,5 +1,12 @@
 #!/bin/bash
 
+# Run unit tests with coverage and export to codacy
+# Usage: ./run_tests.sh -cehu
+# -c: Run coverage
+# -e: Export coverage to codacy
+# -h: Export coverage to html
+# -u: Upload coverage to codacy
+
 COVERAGE=0
 EXPORT=0
 HTML=0
