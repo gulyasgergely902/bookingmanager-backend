@@ -11,14 +11,6 @@ api = Api(bp, doc="/docs")
 bookings_ns = Namespace('bookings', description='Booking operations')
 
 
-class Home(Resource):
-    """Home endpoints"""
-
-    def get(self):
-        """No-op route"""
-        return {"error-msg": "Unauthorized resource"}, 401
-
-
 class Bookings(Resource):
     """Bookings endpoints"""
 
@@ -30,14 +22,19 @@ class Bookings(Resource):
         'duration': fields.Integer(description='The duration of the slot in minutes.')
     })
 
-    get_time_slots_response_model = api.model('Get Time Slots Response', {
+    get_time_slots_response_model_success = api.model('Get Time Slots Response', {
         'count': fields.Integer(description='Number of slots returned.'),
         'slots': fields.List(fields.Nested(time_slot_model), description='List of time slots.')
     })
 
-    @api.doc(responses={200: 'Success', 400: 'Bad Request', 500: 'Internal Server Error'})
+    get_time_slots_response_model_error = api.model('ErrorResponse', {
+        'error-msg': fields.String(description='Error message')
+    })
+
     @api.param('date', 'The date of which bookings should be returned.')
-    @api.marshal_with(get_time_slots_response_model)
+    @api.response(200, 'Success', get_time_slots_response_model_success)
+    @api.response(400, 'Invalid date format', get_time_slots_response_model_error)
+    @api.response(500, 'Internal Server Error', get_time_slots_response_model_error)
     def get(self):
         """Return all booking time slots for the given date"""
         booking_date = request.args.get('date')
@@ -52,13 +49,19 @@ class Bookings(Resource):
         'duration': fields.Integer(description='The duration of the slot in minutes.')
     })
 
-    create_time_slot_response_model = api.model('Create Time Slot Response', {
+    create_time_slot_response_model_success = api.model('Create Time Slot Response', {
         'error-msg': fields.String(description='The error message if any.')
+    })
+
+    create_time_slot_response_model_error = api.model('ErrorResponse', {
+        'error-msg': fields.String(description='Error message')
     })
 
     @api.doc(responses={200: 'Success', 400: 'Bad Request', 500: 'Internal Server Error'})
     @api.expect(create_time_slot_model)
-    @api.marshal_with(create_time_slot_response_model)
+    @api.response(200, 'Success', create_time_slot_response_model_success)
+    @api.response(400, 'Invalid date format', create_time_slot_response_model_error)
+    @api.response(500, 'Internal Server Error', create_time_slot_response_model_error)
     def post(self):
         """Create a new booking time slot"""
         date = request.form.get('date')
@@ -73,13 +76,19 @@ class Bookings(Resource):
         'id': fields.Integer(description='The id of the time slot')
     })
 
-    delete_time_slot_response_model = api.model('Delete Time Slot Response', {
+    delete_time_slot_response_model_success = api.model('Delete Time Slot Response', {
         'error-msg': fields.String(description='The error message if any.')
+    })
+
+    delete_time_slot_response_model_error = api.model('ErrorResponse', {
+        'error-msg': fields.String(description='Error message')
     })
 
     @api.doc(responses={200: 'Success', 400: 'Bad Request', 500: 'Internal Server Error'})
     @api.expect(delete_time_slot_model)
-    @api.marshal_with(delete_time_slot_response_model)
+    @api.response(200, 'Success', delete_time_slot_response_model_success)
+    @api.response(400, 'Invalid date format', delete_time_slot_response_model_error)
+    @api.response(500, 'Internal Server Error', delete_time_slot_response_model_error)
     def delete(self):
         """Delete a booking time slot"""
         time_slot_id = request.form.get('id')
@@ -93,13 +102,19 @@ class Bookings(Resource):
         'available': fields.Integer(description='The new value to be set for available.')
     })
 
-    book_time_slot_response_model = api.model('Book Time Slot Response', {
+    book_time_slot_response_model_success = api.model('Book Time Slot Response', {
         'error-msg': fields.String(description='The error message if any.')
+    })
+
+    book_time_slot_response_model_error = api.model('ErrorResponse', {
+        'error-msg': fields.String(description='Error message')
     })
 
     @api.doc(responses={200: 'Success', 400: 'Bad Request', 500: 'Internal Server Error'})
     @api.expect(book_time_slot_model)
-    @api.marshal_with(book_time_slot_response_model)
+    @api.response(200, 'Success', book_time_slot_response_model_success)
+    @api.response(400, 'Invalid date format', book_time_slot_response_model_error)
+    @api.response(500, 'Internal Server Error', book_time_slot_response_model_error)
     def put(self):
         """Book a time slot"""
         time_slot_id = request.form.get('id')
@@ -111,5 +126,4 @@ class Bookings(Resource):
 
 
 bookings_ns.add_resource(Bookings, '')
-api.add_resource(Home, "/")
 api.add_namespace(bookings_ns)
