@@ -20,8 +20,9 @@ The application...
 
 ## Usage
 
-The application setup can be done using the script `setup.sh` which creates a virtual environment for running the backend
-and installs the required python packages. After setup, tests can be run using the `run_tests.sh` which runs the tests
-also generates coverage.
+The application setup can be done using the script `setup.sh`.
+The script creates a virtual environment for running the backend and installs the required python packages.
+After setup, make sure to activate the virtual environment for your terminal session by running `source .venv/bin/activate`!
+Tests can be run using the `run_tests.sh` which runs the tests also generates coverage.
 
 The backend can be started with `run.py` from the `src/` directory.
